@@ -276,6 +276,122 @@ body {
     padding: 0.4em 0.8em;
 }
 
+/* Common Settings Note */
+.common-settings-note {
+    background: #fff3cd;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid #ffc107;
+    color: #856404;
+}
+
+/* No Store Message */
+.no-store-message {
+    background: #fff3cd;
+    border-radius: 8px;
+    border: 1px dashed #ffc107;
+}
+
+/* Token List */
+.token-list-container {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.token-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.token-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #dee2e6;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.token-item:last-child {
+    border-bottom: none;
+}
+
+.token-item:hover {
+    background-color: #f8f9fa;
+}
+
+.token-item.selected {
+    background-color: #e7f1ff;
+    border-color: #0d6efd;
+}
+
+.token-item-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.token-item-main {
+    flex: 1;
+}
+
+.token-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #212529;
+}
+
+.token-card-info {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.token-card-info .card-number {
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.token-card-info .exp-date {
+    margin-left: 0.5rem;
+    padding-left: 0.5rem;
+    border-left: 1px solid #dee2e6;
+}
+
+.token-item-badges {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.token-item-badges .badge {
+    font-size: 0.7rem;
+}
+
+.token-item-actions {
+    display: flex;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+}
+
+.token-item-actions .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+/* Token Password Section */
+.token-password-section {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.token-password-status {
+    font-size: 0.85rem;
+}
+
 /* Responsive */
 @media (max-width: 991.98px) {
     .main-layout {

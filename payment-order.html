@@ -39,6 +39,41 @@
         <div class="tab-content">
             <!-- Order Tab -->
             <div class="tab-pane fade show active" id="order-pane" role="tabpanel">
+                <!-- Common Settings Section -->
+                <div class="section-card mb-4">
+                    <h2 class="section-title">
+                        <i class="bi bi-gear me-2"></i>공통 설정
+                    </h2>
+                    <div class="section-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">권역 (Region) <span class="text-danger">*</span></label>
+                                <select class="form-select" id="region-select">
+                                    <!-- Options will be added dynamically -->
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">사업부 코드 <span class="text-danger">*</span></label>
+                                <select class="form-select" id="biz-code-select">
+                                    <!-- Options will be added dynamically -->
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">스토어 <span class="text-danger">*</span></label>
+                                <select class="form-select" id="store-select">
+                                    <!-- Options will be added dynamically -->
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">국가 코드 <span class="text-danger">*</span></label>
+                                <select class="form-select" id="country-code-select">
+                                    <!-- Options will be added dynamically -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row g-4 main-layout">
                     <!-- Left Section: Order Info -->
                     <div class="col-lg-7">
@@ -138,72 +173,15 @@
                                     <h3 class="sub-section-title">
                                         <i class="bi bi-wallet2"></i>결제 수단
                                     </h3>
-                                    <div class="payment-method-group">
-                                        <div class="row g-2">
-                                            <div class="col-md-6">
-                                                <label class="form-check" for="pm-card">
-                                                    <input class="form-check-input" type="radio" name="payment-method" value="CARD" id="pm-card" checked>
-                                                    <span class="form-check-label">
-                                                        <i class="bi bi-credit-card me-1"></i>신용카드
-                                                    </span>
-                                                </label>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-check" for="pm-vbank">
-                                                    <input class="form-check-input" type="radio" name="payment-method" value="VBANK" id="pm-vbank">
-                                                    <span class="form-check-label">
-                                                        <i class="bi bi-bank me-1"></i>가상계좌
-                                                    </span>
-                                                </label>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-check" for="pm-naver">
-                                                    <input class="form-check-input" type="radio" name="payment-method" value="NAVERPAY" id="pm-naver">
-                                                    <span class="form-check-label">
-                                                        <i class="bi bi-n-circle me-1"></i>네이버페이
-                                                    </span>
-                                                </label>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-check" for="pm-toss">
-                                                    <input class="form-check-input" type="radio" name="payment-method" value="TOSSPAY" id="pm-toss">
-                                                    <span class="form-check-label">
-                                                        <i class="bi bi-t-square me-1"></i>토스페이
-                                                    </span>
-                                                </label>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-check" for="pm-kakao">
-                                                    <input class="form-check-input" type="radio" name="payment-method" value="KAKAOPAY" id="pm-kakao">
-                                                    <span class="form-check-label">
-                                                        <i class="bi bi-chat-fill me-1"></i>카카오페이
-                                                    </span>
-                                                </label>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-check" for="pm-payco">
-                                                    <input class="form-check-input" type="radio" name="payment-method" value="PAYCO" id="pm-payco">
-                                                    <span class="form-check-label">
-                                                        <i class="bi bi-p-circle me-1"></i>페이코
-                                                    </span>
-                                                </label>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-check" for="pm-keyin">
-                                                    <input class="form-check-input" type="radio" name="payment-method" value="KEYIN" id="pm-keyin">
-                                                    <span class="form-check-label">
-                                                        <i class="bi bi-keyboard me-1"></i>Key-In 결제
-                                                    </span>
-                                                </label>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-check" for="pm-bank-transfer">
-                                                    <input class="form-check-input" type="radio" name="payment-method" value="BANK_TRANSFER" id="pm-bank-transfer">
-                                                    <span class="form-check-label">
-                                                        <i class="bi bi-arrow-left-right me-1"></i>계좌즉시이체
-                                                    </span>
-                                                </label>
-                                            </div>
+                                    <!-- No Store Selected Message -->
+                                    <div class="no-store-message text-center py-4" id="no-store-message">
+                                        <i class="bi bi-exclamation-circle text-warning fs-3 d-block mb-2"></i>
+                                        <p class="text-muted mb-0">스토어를 먼저 선택해주세요.</p>
+                                    </div>
+                                    <!-- Payment Method Group (Dynamic) -->
+                                    <div class="payment-method-group" id="payment-method-container" style="display: none;">
+                                        <div class="row g-2" id="payment-method-list">
+                                            <!-- Payment methods will be dynamically added here -->
                                         </div>
                                     </div>
 
@@ -317,6 +295,45 @@
                                                     <option value="34">34</option>
                                                 </select>
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Token Option -->
+                                    <div id="token-option" class="payment-option">
+                                        <!-- 토큰 관리 버튼 -->
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="fw-semibold small">등록된 토큰</span>
+                                            <div>
+                                                <button type="button" class="btn btn-outline-primary btn-sm" id="btn-refresh-tokens">
+                                                    <i class="bi bi-arrow-clockwise me-1"></i>새로고침
+                                                </button>
+                                                <button type="button" class="btn btn-primary btn-sm" id="btn-register-token">
+                                                    <i class="bi bi-plus-lg me-1"></i>토큰 등록
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!-- 토큰 목록 -->
+                                        <div class="token-list-container mb-3">
+                                            <div class="token-list" id="token-list">
+                                                <!-- 토큰 목록이 여기에 동적으로 추가됨 -->
+                                            </div>
+                                            <div class="text-center text-muted py-3" id="no-tokens-message">
+                                                <i class="bi bi-key fs-4 d-block mb-2"></i>
+                                                <small>등록된 토큰이 없습니다.<br>토큰을 등록해주세요.</small>
+                                            </div>
+                                        </div>
+                                        <!-- 토큰 비밀번호 입력 (비밀번호가 설정된 토큰 선택 시 표시) -->
+                                        <div class="token-password-section" id="token-password-section" style="display: none;">
+                                            <div class="alert alert-info py-2 mb-2">
+                                                <i class="bi bi-lock me-1"></i>선택한 토큰에 비밀번호가 설정되어 있습니다.
+                                            </div>
+                                            <div class="input-group">
+                                                <input type="password" class="form-control" id="token-password-input" placeholder="토큰 비밀번호 입력" maxlength="6">
+                                                <button type="button" class="btn btn-outline-secondary" id="btn-verify-token-password">
+                                                    <i class="bi bi-check-lg"></i> 확인
+                                                </button>
+                                            </div>
+                                            <div class="token-password-status mt-2" id="token-password-status"></div>
                                         </div>
                                     </div>
 
@@ -538,6 +555,111 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
                     <button type="button" class="btn btn-danger" id="btn-confirm-partial-cancel">
                         <i class="bi bi-check-lg me-1"></i>부분취소 실행
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Register Modal -->
+    <div class="modal fade" id="token-register-modal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-key me-2"></i>토큰 등록
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">토큰명 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="new-token-name" placeholder="예: 내 신용카드">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">카드번호 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="new-token-card-number" placeholder="0000-0000-0000-0000" maxlength="19">
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">유효월 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="new-token-exp-month">
+                                <option value="">월 선택</option>
+                                <option value="01">01</option>
+                                <option value="02">02</option>
+                                <option value="03">03</option>
+                                <option value="04">04</option>
+                                <option value="05">05</option>
+                                <option value="06">06</option>
+                                <option value="07">07</option>
+                                <option value="08">08</option>
+                                <option value="09">09</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">유효년도 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="new-token-exp-year">
+                                <option value="">년도 선택</option>
+                                <option value="24">24</option>
+                                <option value="25">25</option>
+                                <option value="26">26</option>
+                                <option value="27">27</option>
+                                <option value="28">28</option>
+                                <option value="29">29</option>
+                                <option value="30">30</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="alert alert-secondary py-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <small>토큰 비밀번호는 등록 완료 후 별도로 설정할 수 있습니다.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" id="btn-confirm-register-token">
+                        <i class="bi bi-check-lg me-1"></i>등록
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Password Set Modal -->
+    <div class="modal fade" id="token-password-modal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-lock me-2"></i>토큰 비밀번호 설정
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">토큰</label>
+                        <div class="form-control bg-light" id="password-token-info">-</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">비밀번호 (6자리 숫자) <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="set-token-password" placeholder="숫자 6자리" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">비밀번호 확인 <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="confirm-token-password" placeholder="비밀번호 재입력" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <div class="alert alert-warning py-2">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        <small>비밀번호는 결제 시 본인 확인에 사용됩니다.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" id="btn-confirm-set-password">
+                        <i class="bi bi-check-lg me-1"></i>설정
                     </button>
                 </div>
             </div>

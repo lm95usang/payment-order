@@ -25,9 +25,20 @@ let currentOrder = {
     pgName: null      // 결제한 PG사 명
 };
 
+// 현재 선택된 스토어 정보
+let currentStore = null;
+
+// 토큰 관련 상태
+let userTokens = [];  // 사용자의 토큰 목록
+let selectedToken = null;  // 현재 선택된 토큰
+let isTokenPasswordVerified = false;  // 토큰 비밀번호 확인 여부
+let passwordTargetToken = null;  // 비밀번호 설정 대상 토큰
+
 // Bootstrap Modal instances
 let apiDetailModal = null;
 let partialCancelModal = null;
+let tokenRegisterModal = null;
+let tokenPasswordModal = null;
 
 // ============================================
 // Initialize
@@ -36,6 +47,12 @@ $(document).ready(function() {
     // Initialize Bootstrap modals
     apiDetailModal = new bootstrap.Modal(document.getElementById('api-detail-modal'));
     partialCancelModal = new bootstrap.Modal(document.getElementById('partial-cancel-modal'));
+    tokenRegisterModal = new bootstrap.Modal(document.getElementById('token-register-modal'));
+    tokenPasswordModal = new bootstrap.Modal(document.getElementById('token-password-modal'));
+
+    // 스토어/공통설정 초기화
+    initializeStoreSettings();
+    initializeCommonSettings();
 
     bindEvents();
     loadSavedData();
@@ -55,14 +72,136 @@ $(document).ready(function() {
 });
 
 // ============================================
+// Store & Common Settings
+// ============================================
+
+/**
+ * 스토어 설정 초기화
+ * 권역, 국가코드, 사업부코드와 스토어는 종속성 없이 독립적으로 동작
+ */
+function initializeStoreSettings() {
+    const $regionSelect = $('#region-select');
+    const $storeSelect = $('#store-select');
+
+    // 권역 옵션 추가 (첫 번째 값을 기본값으로)
+    STORE.getAllRegions().forEach((region, index) => {
+        $regionSelect.append(`<option value="${region.id}" ${index === 0 ? 'selected' : ''}>${region.name} (${region.id})</option>`);
+    });
+
+    // 스토어 옵션 추가 - 모든 스토어를 표시
+    STORE.list.forEach((store, index) => {
+        $storeSelect.append(`<option value="${store.code}" ${index === 0 ? 'selected' : ''}>${store.name} (${store.code})</option>`);
+    });
+
+    // 스토어 변경 시 결제수단 업데이트 (스토어만 결제수단에 영향)
+    $storeSelect.on('change', function() {
+        const storeCode = $(this).val();
+        onStoreChange(storeCode);
+    });
+
+    // 초기 스토어 선택 처리
+    const firstStore = STORE.list[0];
+    if (firstStore) {
+        onStoreChange(firstStore.code);
+    }
+}
+
+
+/**
+ * 스토어 변경 시 호출
+ */
+function onStoreChange(storeCode) {
+    currentStore = storeCode ? STORE.getByCode(storeCode) : null;
+
+    // 결제수단 업데이트
+    updatePaymentMethods();
+}
+
+/**
+ * 스토어에 따른 결제수단 동적 렌더링
+ */
+function updatePaymentMethods() {
+    const $noStore = $('#no-store-message');
+    const $container = $('#payment-method-container');
+    const $list = $('#payment-method-list');
+
+    if (!currentStore) {
+        $noStore.show();
+        $container.hide();
+        $('.payment-option').removeClass('show');
+        return;
+    }
+
+    $noStore.hide();
+    $container.show();
+    $list.empty();
+
+    const methods = STORE.getPaymentMethods(currentStore.code);
+
+    methods.forEach((method, index) => {
+        const inputId = `pm-${method.id.toLowerCase()}`;
+        const isFirst = index === 0;
+
+        $list.append(`
+            <div class="col-md-6">
+                <label class="form-check" for="${inputId}">
+                    <input class="form-check-input" type="radio" name="payment-method"
+                           value="${method.id}" id="${inputId}" ${isFirst ? 'checked' : ''}>
+                    <span class="form-check-label">
+                        <i class="${method.icon} me-1"></i>${method.name}
+                    </span>
+                </label>
+            </div>
+        `);
+    });
+
+    // 결제수단 변경 이벤트 바인딩
+    $list.find('input[name="payment-method"]').on('change', updatePaymentOptionDisplay);
+
+    // 첫 번째 결제수단 옵션 표시
+    updatePaymentOptionDisplay();
+}
+
+/**
+ * 공통 설정 초기화
+ */
+function initializeCommonSettings() {
+    const $countrySelect = $('#country-code-select');
+    const $bizSelect = $('#biz-code-select');
+
+    // 국가 코드 옵션 추가 (첫 번째 값을 기본값으로)
+    COUNTRY.list.forEach((country, index) => {
+        $countrySelect.append(`<option value="${country.code}" ${index === 0 ? 'selected' : ''}>${country.name} (${country.code})</option>`);
+    });
+
+    // 사업부 코드 옵션 추가 (첫 번째 값을 기본값으로)
+    BIZ_CODE.list.forEach((biz, index) => {
+        $bizSelect.append(`<option value="${biz.code}" ${index === 0 ? 'selected' : ''}>${biz.name} (${biz.code})</option>`);
+    });
+}
+
+/**
+ * 공통 설정값 조회
+ * 모든 설정값은 드롭다운에서 직접 선택한 값을 사용 (종속성 없음)
+ */
+function getCommonSettings() {
+    return {
+        region: $('#region-select').val(),
+        bizCode: $('#biz-code-select').val(),
+        storeCode: $('#store-select').val(),
+        countryCode: $('#country-code-select').val()
+    };
+}
+
+// ============================================
 // Event Binding
 // ============================================
 function bindEvents() {
     // Add product
     $('#btn-add-product').on('click', addProduct);
 
-    // Payment method change
-    $('input[name="payment-method"]').on('change', updatePaymentOptionDisplay);
+    // Payment method change - 동적으로 바인딩됨 (updatePaymentMethods 에서 처리)
+    // $('input[name="payment-method"]').on('change', updatePaymentOptionDisplay);
 
     // Action buttons
     $('#btn-pay').on('click', processPayment);
@@ -109,6 +248,43 @@ function bindEvents() {
         let formatted = value.match(/.{1,4}/g);
         $(this).val(formatted ? formatted.join('-') : '');
     });
+
+    // 토큰 등록 카드번호 자동 포맷팅
+    $('#new-token-card-number').on('input', function() {
+        let value = $(this).val().replace(/\D/g, '');
+        if (value.length > 16) value = value.slice(0, 16);
+        let formatted = value.match(/.{1,4}/g);
+        $(this).val(formatted ? formatted.join('-') : '');
+    });
+
+    // 토큰 관리 버튼 이벤트
+    $('#btn-refresh-tokens').on('click', loadTokenList);
+    $('#btn-register-token').on('click', openTokenRegisterModal);
+    $('#btn-confirm-register-token').on('click', registerToken);
+    $('#btn-confirm-set-password').on('click', setTokenPassword);
+    $('#btn-verify-token-password').on('click', verifyTokenPassword);
+
+    // 토큰 선택 이벤트 (동적 요소)
+    $(document).on('click', '.token-item', function() {
+        selectToken($(this).data('token-id'));
+    });
+
+    // 토큰 삭제 버튼 이벤트 (동적 요소)
+    $(document).on('click', '.btn-delete-token', function(e) {
+        e.stopPropagation();
+        deleteToken($(this).data('token-id'));
+    });
+
+    // 토큰 비밀번호 설정 버튼 이벤트 (동적 요소)
+    $(document).on('click', '.btn-set-token-password', function(e) {
+        e.stopPropagation();
+        openTokenPasswordModal($(this).data('token-id'));
+    });
+
+    // 비밀번호 입력 필드 숫자만 허용
+    $('#set-token-password, #confirm-token-password, #token-password-input').on('input', function() {
+        $(this).val($(this).val().replace(/\D/g, ''));
+    });
 }
 
 // ============================================
@@ -124,6 +300,10 @@ function updatePaymentOptionDisplay() {
         $('#vbank-option').addClass('show');
     } else if (method === 'KEYIN') {
         $('#keyin-option').addClass('show');
+    } else if (method === 'TOKEN') {
+        $('#token-option').addClass('show');
+        // 토큰결제 선택 시 토큰 목록 로드
+        loadTokenList();
     }
 
     // 가상계좌 선택 시에만 입금완료 버튼 표시
@@ -258,6 +438,11 @@ function getPaymentData() {
         data.cardNumber = $('#keyin-card-number').val();
         data.expMonth = $('#keyin-exp-month').val();
         data.expYear = $('#keyin-exp-year').val();
+    } else if (method === 'TOKEN') {
+        if (selectedToken) {
+            data.tokenId = selectedToken.tokenId;
+            data.tokenName = selectedToken.name;
+        }
     }
 
     return data;
@@ -271,6 +456,13 @@ function getPaymentData() {
  * 결제 프로세스 시작 (Step 1: 인증 요청)
  */
 function processPayment() {
+    // 스토어 필수값 검증
+    if (!currentStore) {
+        showToast('스토어를 먼저 선택해주세요.', 'warning');
+        $('#store-select').focus();
+        return;
+    }
+
     if (products.length === 0) {
         showToast('결제할 상품이 없습니다.', 'warning');
         return;
@@ -292,7 +484,13 @@ function processPayment() {
         return;
     }
 
-    // Step 1: 인증 요청 API 호출 (PG사는 서버에서 결정)
+    // 토큰결제: 인증/승인 분리 없이 바로 결제 완료
+    if (paymentData.method === 'TOKEN') {
+        processTokenPayment(orderData, paymentData);
+        return;
+    }
+
+    // 일반 결제: 인증 요청 API 호출 (PG사는 서버에서 결정)
     requestPaymentAuth(orderData, paymentData);
 }
 
@@ -323,6 +521,17 @@ function validatePaymentData(paymentData) {
             return false;
         }
     }
+    if (paymentData.method === 'TOKEN') {
+        if (!selectedToken) {
+            showToast('결제할 토큰을 선택해주세요.', 'warning');
+            return false;
+        }
+        if (selectedToken.hasPassword && !isTokenPasswordVerified) {
+            showToast('토큰 비밀번호를 확인해주세요.', 'warning');
+            $('#token-password-input').focus();
+            return false;
+        }
+    }
     return true;
 }
 
@@ -341,12 +550,21 @@ function requestPaymentAuth(orderData, paymentData) {
     // 대표상품명 생성 (상품명 외 N건)
     const representProductName = getRepresentProductName(products);
 
+    // 공통 설정값 조회
+    const commonSettings = getCommonSettings();
+
     // returnUrl: 성공/실패 콜백 페이지 경로
     const baseUrl = window.location.href.replace(/\/[^\/]*$/, '');
     const returnUrl = baseUrl + '/payment-callback.html';
     const failUrl = baseUrl + '/payment-callback-fail.html';
 
     const authRequestData = {
+        // 공통 설정값
+        storeCode: commonSettings.storeCode,
+        region: commonSettings.region,
+        countryCode: commonSettings.countryCode,
+        bizCode: commonSettings.bizCode,
+        // 주문 정보
         orderId: orderId,
         representProductName: representProductName,  // 대표상품명
         productAmount: productAmount,                // 상품금액 합계
@@ -930,6 +1148,13 @@ function showApiDetail(index) {
 // ============================================
 function saveData() {
     const data = {
+        // 공통 설정값
+        commonSettings: {
+            region: $('#region-select').val(),
+            bizCode: $('#biz-code-select').val(),
+            storeCode: $('#store-select').val(),
+            countryCode: $('#country-code-select').val()
+        },
         products: products,
         customer: {
             name: $('#customer-name').val(),
@@ -945,7 +1170,8 @@ function saveData() {
             bank: $('#bank').val(),
             keyinCardNumber: $('#keyin-card-number').val(),
             keyinExpMonth: $('#keyin-exp-month').val(),
-            keyinExpYear: $('#keyin-exp-year').val()
+            keyinExpYear: $('#keyin-exp-year').val(),
+            tokenBillingKey: $('#token-billing-key').val()
         }
     };
     localStorage.setItem('paymentOrderData', JSON.stringify(data));
@@ -957,6 +1183,27 @@ function loadSavedData() {
 
     try {
         const data = JSON.parse(savedData);
+
+        // 공통 설정값 복원 (각 드롭다운은 독립적으로 처리)
+        if (data.commonSettings) {
+            // 권역 설정
+            if (data.commonSettings.region) {
+                $('#region-select').val(data.commonSettings.region);
+            }
+            // 사업부 코드 설정
+            if (data.commonSettings.bizCode) {
+                $('#biz-code-select').val(data.commonSettings.bizCode);
+            }
+            // 국가 코드 설정
+            if (data.commonSettings.countryCode) {
+                $('#country-code-select').val(data.commonSettings.countryCode);
+            }
+            // 스토어 선택 (권역과 무관하게 직접 선택)
+            if (data.commonSettings.storeCode) {
+                $('#store-select').val(data.commonSettings.storeCode);
+                onStoreChange(data.commonSettings.storeCode);
+            }
+        }
 
         if (data.products && Array.isArray(data.products)) {
             products = data.products;
@@ -970,7 +1217,11 @@ function loadSavedData() {
         }
 
         if (data.payment) {
-            $(`input[name="payment-method"][value="${data.payment.method}"]`).prop('checked', true);
+            // 결제수단은 스토어 선택 후 동적으로 생성되므로 약간의 딜레이 필요
+            setTimeout(() => {
+                $(`input[name="payment-method"][value="${data.payment.method}"]`).prop('checked', true);
+                updatePaymentOptionDisplay();
+            }, 100);
             $('#card-company').val(data.payment.cardCompany || '');
             $('#card-installment').val(data.payment.cardInstallment || '0');
             if (data.payment.cardPoint) {
@@ -980,8 +1231,504 @@ function loadSavedData() {
             $('#keyin-card-number').val(data.payment.keyinCardNumber || '');
             $('#keyin-exp-month').val(data.payment.keyinExpMonth || '');
             $('#keyin-exp-year').val(data.payment.keyinExpYear || '');
+            $('#token-billing-key').val(data.payment.tokenBillingKey || '');
         }
     } catch (e) {
         console.error('Failed to load saved data:', e);
     }
+}
+
+// ============================================
+// Token Payment (인증/승인 분리 없이 바로 결제)
+// ============================================
+
+/**
+ * 토큰 결제 처리
+ * 인증/승인 분리 없이 토큰으로 바로 결제 완료
+ */
+function processTokenPayment(orderData, paymentData) {
+    const orderId = 'ORD' + Date.now();
+
+    // 금액 합계 계산
+    const productAmount = products.reduce((sum, p) => sum + p.price, 0);
+    const shippingAmount = products.reduce((sum, p) => sum + p.shipping, 0);
+    const totalAmount = productAmount + shippingAmount;
+
+    // 대표상품명 생성
+    const representProductName = getRepresentProductName(products);
+
+    // 공통 설정값 조회
+    const commonSettings = getCommonSettings();
+
+    // 시뮬레이션: 서버에서 발급하는 주문번호
+    const serverOrdNo = 'ORD' + Date.now() + Math.random().toString(36).slice(2, 6).toUpperCase();
+
+    const tokenPayRequestData = {
+        // 공통 설정값
+        storeCode: commonSettings.storeCode,
+        region: commonSettings.region,
+        countryCode: commonSettings.countryCode,
+        bizCode: commonSettings.bizCode,
+        // 주문 정보
+        orderId: orderId,
+        representProductName: representProductName,
+        productAmount: productAmount,
+        shippingAmount: shippingAmount,
+        totalAmount: totalAmount,
+        orderData: orderData,
+        // 토큰 결제 정보
+        userNo: orderData.userNo,
+        tokenId: paymentData.tokenId,
+        tokenName: paymentData.tokenName
+    };
+
+    // 시뮬레이션: 토큰 결제 API 응답 (바로 결제 완료)
+    const tokenPayResponseData = {
+        billing: {
+            resultCode: '0',
+            ordNo: serverOrdNo,
+            orderId: orderId,
+            transactionId: 'TXN' + Date.now(),
+            approvalNumber: 'APR' + Math.random().toString(36).slice(2, 8).toUpperCase(),
+            approvalDate: new Date().toISOString(),
+            paymentMethod: 'TOKEN',
+            tokenId: paymentData.tokenId,
+            tokenName: paymentData.tokenName,
+            totalAmount: totalAmount,
+            message: '토큰 결제가 완료되었습니다.'
+        }
+    };
+
+    addApiHistory('TOKEN_PAY001', tokenPayRequestData, tokenPayResponseData);
+
+    const billing = tokenPayResponseData.billing;
+    if (billing.resultCode !== '0') {
+        showToast(billing.errMsg || '토큰 결제에 실패했습니다.', 'danger');
+        return;
+    }
+
+    // 주문 정보 저장
+    currentOrder = {
+        ordNo: billing.ordNo,
+        orderId: billing.orderId,
+        pgId: null,
+        pgName: '토큰결제'
+    };
+
+    // 결제 완료 처리
+    paidProducts = [...products];
+
+    if ($('#save-info').is(':checked')) {
+        saveData();
+    }
+
+    showToast(`토큰 결제가 완료되었습니다. 승인번호: ${billing.approvalNumber}`, 'success');
+
+    // 토큰 비밀번호 확인 상태 초기화
+    isTokenPasswordVerified = false;
+    selectedToken = null;
+    updateTokenPasswordSection();
+}
+
+// ============================================
+// Token Management
+// ============================================
+
+/**
+ * 토큰 목록 조회
+ */
+function loadTokenList() {
+    const userNo = $('#customer-userno').val().trim();
+    if (!userNo) {
+        showToast('토큰 조회를 위해 userNo를 입력해주세요.', 'warning');
+        $('#no-tokens-message').show();
+        $('#token-list').empty();
+        return;
+    }
+
+    const requestData = {
+        userNo: userNo
+    };
+
+    // 시뮬레이션: 토큰 목록 조회 API 응답
+    // 실제로는 서버에서 해당 userNo의 토큰 목록을 조회
+    const storedTokens = localStorage.getItem(`tokens_${userNo}`);
+    const tokens = storedTokens ? JSON.parse(storedTokens) : [];
+
+    const responseData = {
+        billing: {
+            resultCode: '0',
+            tokens: tokens
+        }
+    };
+
+    addApiHistory('TOKEN001', requestData, responseData);
+
+    if (responseData.billing.resultCode !== '0') {
+        showToast(responseData.billing.errMsg || '토큰 목록 조회에 실패했습니다.', 'danger');
+        return;
+    }
+
+    userTokens = responseData.billing.tokens;
+    renderTokenList();
+}
+
+/**
+ * 토큰 목록 렌더링
+ */
+function renderTokenList() {
+    const $list = $('#token-list');
+    const $noMessage = $('#no-tokens-message');
+    $list.empty();
+
+    if (userTokens.length === 0) {
+        $noMessage.show();
+        return;
+    }
+
+    $noMessage.hide();
+    userTokens.forEach(token => {
+        const isSelected = selectedToken && selectedToken.tokenId === token.tokenId;
+        const hasPassword = token.hasPassword;
+        const maskedCard = token.cardNumber.replace(/(\d{4})-(\d{4})-(\d{4})-(\d{4})/, '$1-****-****-$4');
+
+        $list.append(`
+            <div class="token-item ${isSelected ? 'selected' : ''}" data-token-id="${token.tokenId}">
+                <div class="token-item-content">
+                    <div class="token-item-main">
+                        <div class="token-name">${escapeHtml(token.name)}</div>
+                        <div class="token-card-info">
+                            <span class="card-number">${maskedCard}</span>
+                            <span class="exp-date">${token.expMonth}/${token.expYear}</span>
+                        </div>
+                    </div>
+                    <div class="token-item-badges">
+                        ${hasPassword ? '<span class="badge bg-success"><i class="bi bi-lock-fill"></i> 비밀번호</span>' : '<span class="badge bg-secondary"><i class="bi bi-unlock"></i> 미설정</span>'}
+                    </div>
+                </div>
+                <div class="token-item-actions">
+                    <button type="button" class="btn btn-outline-primary btn-sm btn-set-token-password" data-token-id="${token.tokenId}" title="비밀번호 설정">
+                        <i class="bi bi-lock"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm btn-delete-token" data-token-id="${token.tokenId}" title="삭제">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `);
+    });
+
+    // 선택된 토큰이 있으면 비밀번호 섹션 업데이트
+    updateTokenPasswordSection();
+}
+
+/**
+ * 토큰 선택
+ */
+function selectToken(tokenId) {
+    selectedToken = userTokens.find(t => t.tokenId === tokenId) || null;
+    isTokenPasswordVerified = false;
+
+    // UI 업데이트
+    $('.token-item').removeClass('selected');
+    $(`.token-item[data-token-id="${tokenId}"]`).addClass('selected');
+
+    updateTokenPasswordSection();
+}
+
+/**
+ * 토큰 비밀번호 섹션 업데이트
+ */
+function updateTokenPasswordSection() {
+    const $section = $('#token-password-section');
+    const $status = $('#token-password-status');
+    $('#token-password-input').val('');
+    $status.empty();
+
+    if (!selectedToken) {
+        $section.hide();
+        return;
+    }
+
+    if (selectedToken.hasPassword) {
+        $section.show();
+        if (isTokenPasswordVerified) {
+            $status.html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>비밀번호가 확인되었습니다.</span>');
+        }
+    } else {
+        $section.hide();
+    }
+}
+
+/**
+ * 토큰 등록 모달 열기
+ */
+function openTokenRegisterModal() {
+    const userNo = $('#customer-userno').val().trim();
+    if (!userNo) {
+        showToast('토큰 등록을 위해 userNo를 먼저 입력해주세요.', 'warning');
+        $('#customer-userno').focus();
+        return;
+    }
+
+    // 폼 초기화
+    $('#new-token-name').val('');
+    $('#new-token-card-number').val('');
+    $('#new-token-exp-month').val('');
+    $('#new-token-exp-year').val('');
+
+    tokenRegisterModal.show();
+}
+
+/**
+ * 토큰 등록
+ */
+function registerToken() {
+    const userNo = $('#customer-userno').val().trim();
+    const tokenName = $('#new-token-name').val().trim();
+    const cardNumber = $('#new-token-card-number').val().trim();
+    const expMonth = $('#new-token-exp-month').val();
+    const expYear = $('#new-token-exp-year').val();
+
+    // 유효성 검사
+    if (!tokenName) {
+        showToast('토큰명을 입력해주세요.', 'warning');
+        $('#new-token-name').focus();
+        return;
+    }
+    if (!cardNumber || cardNumber.replace(/-/g, '').length !== 16) {
+        showToast('올바른 카드번호를 입력해주세요.', 'warning');
+        $('#new-token-card-number').focus();
+        return;
+    }
+    if (!expMonth) {
+        showToast('유효월을 선택해주세요.', 'warning');
+        return;
+    }
+    if (!expYear) {
+        showToast('유효년도를 선택해주세요.', 'warning');
+        return;
+    }
+
+    const requestData = {
+        userNo: userNo,
+        tokenName: tokenName,
+        cardNumber: cardNumber,
+        expMonth: expMonth,
+        expYear: expYear
+    };
+
+    // 시뮬레이션: 토큰 등록 API 응답
+    const newToken = {
+        tokenId: 'TKN_' + Date.now(),
+        name: tokenName,
+        cardNumber: cardNumber,
+        expMonth: expMonth,
+        expYear: expYear,
+        hasPassword: false,
+        createdAt: new Date().toISOString()
+    };
+
+    // LocalStorage에 저장 (시뮬레이션)
+    const storedTokens = localStorage.getItem(`tokens_${userNo}`);
+    const tokens = storedTokens ? JSON.parse(storedTokens) : [];
+    tokens.push(newToken);
+    localStorage.setItem(`tokens_${userNo}`, JSON.stringify(tokens));
+
+    const responseData = {
+        billing: {
+            resultCode: '0',
+            tokenId: newToken.tokenId,
+            message: '토큰이 등록되었습니다.'
+        }
+    };
+
+    addApiHistory('TOKEN002', requestData, responseData);
+
+    if (responseData.billing.resultCode !== '0') {
+        showToast(responseData.billing.errMsg || '토큰 등록에 실패했습니다.', 'danger');
+        return;
+    }
+
+    tokenRegisterModal.hide();
+    showToast('토큰이 등록되었습니다.', 'success');
+    loadTokenList();
+}
+
+/**
+ * 토큰 비밀번호 설정 모달 열기
+ */
+function openTokenPasswordModal(tokenId) {
+    const token = userTokens.find(t => t.tokenId === tokenId);
+    if (!token) {
+        showToast('토큰을 찾을 수 없습니다.', 'danger');
+        return;
+    }
+
+    passwordTargetToken = token;
+    const maskedCard = token.cardNumber.replace(/(\d{4})-(\d{4})-(\d{4})-(\d{4})/, '$1-****-****-$4');
+    $('#password-token-info').text(`${token.name} (${maskedCard})`);
+    $('#set-token-password').val('');
+    $('#confirm-token-password').val('');
+
+    tokenPasswordModal.show();
+}
+
+/**
+ * 토큰 비밀번호 설정
+ */
+function setTokenPassword() {
+    if (!passwordTargetToken) {
+        showToast('토큰 정보가 없습니다.', 'danger');
+        return;
+    }
+
+    const password = $('#set-token-password').val();
+    const confirmPassword = $('#confirm-token-password').val();
+
+    if (!password || password.length !== 6) {
+        showToast('비밀번호는 숫자 6자리여야 합니다.', 'warning');
+        $('#set-token-password').focus();
+        return;
+    }
+    if (password !== confirmPassword) {
+        showToast('비밀번호가 일치하지 않습니다.', 'warning');
+        $('#confirm-token-password').focus();
+        return;
+    }
+
+    const userNo = $('#customer-userno').val().trim();
+    const requestData = {
+        userNo: userNo,
+        tokenId: passwordTargetToken.tokenId,
+        password: '******' // 보안상 마스킹
+    };
+
+    // 시뮬레이션: 비밀번호 설정
+    const storedTokens = localStorage.getItem(`tokens_${userNo}`);
+    const tokens = storedTokens ? JSON.parse(storedTokens) : [];
+    const tokenIndex = tokens.findIndex(t => t.tokenId === passwordTargetToken.tokenId);
+    if (tokenIndex !== -1) {
+        tokens[tokenIndex].hasPassword = true;
+        tokens[tokenIndex].password = password; // 실제로는 서버에서 암호화 저장
+        localStorage.setItem(`tokens_${userNo}`, JSON.stringify(tokens));
+    }
+
+    const responseData = {
+        billing: {
+            resultCode: '0',
+            message: '비밀번호가 설정되었습니다.'
+        }
+    };
+
+    addApiHistory('TOKEN003', requestData, responseData);
+
+    if (responseData.billing.resultCode !== '0') {
+        showToast(responseData.billing.errMsg || '비밀번호 설정에 실패했습니다.', 'danger');
+        return;
+    }
+
+    tokenPasswordModal.hide();
+    passwordTargetToken = null;
+    showToast('토큰 비밀번호가 설정되었습니다.', 'success');
+    loadTokenList();
+}
+
+/**
+ * 토큰 삭제
+ */
+function deleteToken(tokenId) {
+    const token = userTokens.find(t => t.tokenId === tokenId);
+    if (!token) {
+        showToast('토큰을 찾을 수 없습니다.', 'danger');
+        return;
+    }
+
+    if (!confirm(`'${token.name}' 토큰을 삭제하시겠습니까?`)) {
+        return;
+    }
+
+    const userNo = $('#customer-userno').val().trim();
+    const requestData = {
+        userNo: userNo,
+        tokenId: tokenId
+    };
+
+    // 시뮬레이션: 토큰 삭제
+    const storedTokens = localStorage.getItem(`tokens_${userNo}`);
+    const tokens = storedTokens ? JSON.parse(storedTokens) : [];
+    const filteredTokens = tokens.filter(t => t.tokenId !== tokenId);
+    localStorage.setItem(`tokens_${userNo}`, JSON.stringify(filteredTokens));
+
+    const responseData = {
+        billing: {
+            resultCode: '0',
+            message: '토큰이 삭제되었습니다.'
+        }
+    };
+
+    addApiHistory('TOKEN004', requestData, responseData);
+
+    if (responseData.billing.resultCode !== '0') {
+        showToast(responseData.billing.errMsg || '토큰 삭제에 실패했습니다.', 'danger');
+        return;
+    }
+
+    // 선택된 토큰이 삭제된 경우 초기화
+    if (selectedToken && selectedToken.tokenId === tokenId) {
+        selectedToken = null;
+        isTokenPasswordVerified = false;
+    }
+
+    showToast('토큰이 삭제되었습니다.', 'success');
+    loadTokenList();
+}
+
+/**
+ * 토큰 비밀번호 확인
+ */
+function verifyTokenPassword() {
+    if (!selectedToken) {
+        showToast('토큰을 선택해주세요.', 'warning');
+        return;
+    }
+
+    const password = $('#token-password-input').val();
+    if (!password || password.length !== 6) {
+        showToast('비밀번호 6자리를 입력해주세요.', 'warning');
+        $('#token-password-input').focus();
+        return;
+    }
+
+    const userNo = $('#customer-userno').val().trim();
+    const requestData = {
+        userNo: userNo,
+        tokenId: selectedToken.tokenId,
+        password: '******'
+    };
+
+    // 시뮬레이션: 비밀번호 확인
+    const storedTokens = localStorage.getItem(`tokens_${userNo}`);
+    const tokens = storedTokens ? JSON.parse(storedTokens) : [];
+    const token = tokens.find(t => t.tokenId === selectedToken.tokenId);
+    const isValid = token && token.password === password;
+
+    const responseData = {
+        billing: {
+            resultCode: isValid ? '0' : '1',
+            errMsg: isValid ? null : '비밀번호가 일치하지 않습니다.'
+        }
+    };
+
+    addApiHistory('TOKEN005', requestData, responseData);
+
+    if (responseData.billing.resultCode !== '0') {
+        showToast(responseData.billing.errMsg || '비밀번호 확인에 실패했습니다.', 'danger');
+        $('#token-password-status').html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>비밀번호가 일치하지 않습니다.</span>');
+        return;
+    }
+
+    isTokenPasswordVerified = true;
+    $('#token-password-status').html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>비밀번호가 확인되었습니다.</span>');
+    showToast('비밀번호가 확인되었습니다.', 'success');
 }
