@@ -540,6 +540,7 @@ function validatePaymentData(paymentData) {
  * 멀티PG 분배 방식: 서버에서 PG사를 결정하고 응답으로 pgId와 windowType을 전달
  */
 function requestPaymentAuth(orderData, paymentData) {
+    showLoading('결제 인증 요청 중...');
     const orderId = 'ORD' + Date.now();
 
     // 금액 합계 계산
@@ -611,6 +612,8 @@ function requestPaymentAuth(orderData, paymentData) {
 
     addApiHistory('AUTH001', authRequestData, authResponseData);
 
+    hideLoading();
+
     const authBilling = authResponseData.billing;
     if (authBilling.resultCode !== '0') {
         showToast(authBilling.errMsg || '인증 요청에 실패했습니다.', 'danger');
@@ -648,6 +651,7 @@ function requestPaymentAuth(orderData, paymentData) {
  * authData.queryString: PG사에서 전달받은 쿼리스트링 전체 (파싱하지 않음)
  */
 function requestPaymentApprove(orderId, authData) {
+    showLoading('결제 승인 요청 중...');
     const approveRequestData = {
         ordNo: currentOrder.ordNo,  // 서버에서 발급받은 주문번호
         orderId: orderId,
@@ -672,6 +676,8 @@ function requestPaymentApprove(orderId, authData) {
     };
 
     addApiHistory('APPROVE001', approveRequestData, approveResponseData);
+
+    hideLoading();
 
     const approveBilling = approveResponseData.billing;
     if (approveBilling.resultCode !== '0') {
@@ -700,6 +706,8 @@ function processDepositComplete() {
         return;
     }
 
+    showLoading('입금완료 처리 중...');
+
     const requestData = {
         ordNo: currentOrder.ordNo,  // 서버에서 발급받은 주문번호
         depositType: 'VBANK_DEPOSIT',
@@ -718,6 +726,8 @@ function processDepositComplete() {
     };
 
     addApiHistory('DEPOSIT001', requestData, responseData);
+
+    hideLoading();
 
     const depositBilling = responseData.billing;
     if (depositBilling.resultCode !== '0') {
@@ -746,6 +756,8 @@ function processCancelAll() {
         return;
     }
 
+    showLoading('전체 취소 처리 중...');
+
     const requestData = {
         ordNo: currentOrder.ordNo,  // 서버에서 발급받은 주문번호
         cancelType: 'FULL',
@@ -764,6 +776,8 @@ function processCancelAll() {
     };
 
     addApiHistory('CANCEL001', requestData, responseData);
+
+    hideLoading();
 
     const cancelBilling = responseData.billing;
     if (cancelBilling.resultCode !== '0') {
@@ -865,6 +879,8 @@ function confirmPartialCancel() {
         return;
     }
 
+    showLoading('부분 취소 처리 중...');
+
     const totalAddShippingFee = shippingProducts.reduce((sum, p) => sum + p.fee, 0);
 
     const requestData = {
@@ -903,6 +919,8 @@ function confirmPartialCancel() {
     }
 
     addApiHistory('CANCEL002', requestData, responseData);
+
+    hideLoading();
 
     const partialCancelBilling = responseData.billing;
     if (partialCancelBilling.resultCode !== '0') {
@@ -1247,6 +1265,7 @@ function loadSavedData() {
  * 인증/승인 분리 없이 토큰으로 바로 결제 완료
  */
 function processTokenPayment(orderData, paymentData) {
+    showLoading('토큰 결제 처리 중...');
     const orderId = 'ORD' + Date.now();
 
     // 금액 합계 계산
@@ -1301,6 +1320,8 @@ function processTokenPayment(orderData, paymentData) {
 
     addApiHistory('TOKEN_PAY001', tokenPayRequestData, tokenPayResponseData);
 
+    hideLoading();
+
     const billing = tokenPayResponseData.billing;
     if (billing.resultCode !== '0') {
         showToast(billing.errMsg || '토큰 결제에 실패했습니다.', 'danger');
@@ -1346,6 +1367,8 @@ function loadTokenList() {
         return;
     }
 
+    showLoading('토큰 목록 조회 중...');
+
     const requestData = {
         userNo: userNo
     };
@@ -1363,6 +1386,8 @@ function loadTokenList() {
     };
 
     addApiHistory('TOKEN001', requestData, responseData);
+
+    hideLoading();
 
     if (responseData.billing.resultCode !== '0') {
         showToast(responseData.billing.errMsg || '토큰 목록 조회에 실패했습니다.', 'danger');
@@ -1490,7 +1515,7 @@ function registerToken() {
     const expMonth = $('#new-token-exp-month').val();
     const expYear = $('#new-token-exp-year').val();
 
-    // 유효성 검사
+    // 유효성 검사 (로딩 표시 전에 체크)
     if (!tokenName) {
         showToast('토큰명을 입력해주세요.', 'warning');
         $('#new-token-name').focus();
@@ -1509,6 +1534,8 @@ function registerToken() {
         showToast('유효년도를 선택해주세요.', 'warning');
         return;
     }
+
+    showLoading('토큰 등록 중...');
 
     const requestData = {
         userNo: userNo,
@@ -1544,6 +1571,8 @@ function registerToken() {
     };
 
     addApiHistory('TOKEN002', requestData, responseData);
+
+    hideLoading();
 
     if (responseData.billing.resultCode !== '0') {
         showToast(responseData.billing.errMsg || '토큰 등록에 실패했습니다.', 'danger');
@@ -1597,6 +1626,8 @@ function setTokenPassword() {
         return;
     }
 
+    showLoading('비밀번호 설정 중...');
+
     const userNo = $('#customer-userno').val().trim();
     const requestData = {
         userNo: userNo,
@@ -1623,6 +1654,8 @@ function setTokenPassword() {
 
     addApiHistory('TOKEN003', requestData, responseData);
 
+    hideLoading();
+
     if (responseData.billing.resultCode !== '0') {
         showToast(responseData.billing.errMsg || '비밀번호 설정에 실패했습니다.', 'danger');
         return;
@@ -1648,6 +1681,8 @@ function deleteToken(tokenId) {
         return;
     }
 
+    showLoading('토큰 삭제 중...');
+
     const userNo = $('#customer-userno').val().trim();
     const requestData = {
         userNo: userNo,
@@ -1668,6 +1703,8 @@ function deleteToken(tokenId) {
     };
 
     addApiHistory('TOKEN004', requestData, responseData);
+
+    hideLoading();
 
     if (responseData.billing.resultCode !== '0') {
         showToast(responseData.billing.errMsg || '토큰 삭제에 실패했습니다.', 'danger');
@@ -1700,6 +1737,8 @@ function verifyTokenPassword() {
         return;
     }
 
+    showLoading('비밀번호 확인 중...');
+
     const userNo = $('#customer-userno').val().trim();
     const requestData = {
         userNo: userNo,
@@ -1721,6 +1760,8 @@ function verifyTokenPassword() {
     };
 
     addApiHistory('TOKEN005', requestData, responseData);
+
+    hideLoading();
 
     if (responseData.billing.resultCode !== '0') {
         showToast(responseData.billing.errMsg || '비밀번호 확인에 실패했습니다.', 'danger');

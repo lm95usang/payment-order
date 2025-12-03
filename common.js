@@ -91,6 +91,22 @@ function showToast(message, type = 'info') {
 }
 
 /**
+ * 로딩 스피너 표시
+ * @param {string} message - 표시할 메시지 (기본값: '처리 중...')
+ */
+function showLoading(message = '처리 중...') {
+    $('#loading-text').text(message);
+    $('#loading-overlay').fadeIn(200);
+}
+
+/**
+ * 로딩 스피너 숨김
+ */
+function hideLoading() {
+    $('#loading-overlay').fadeOut(200);
+}
+
+/**
  * 대표상품명 생성
  * 상품이 1건이면 상품명만, 2건 이상이면 "상품명 외 N건" 형식으로 반환
  * @param {Array} products - 상품 목록
