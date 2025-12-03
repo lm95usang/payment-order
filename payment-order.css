@@ -1,0 +1,284 @@
+/**
+ * 내부 테스트용 결제 주문서 - CSS
+ */
+
+body {
+    background-color: #f8f9fa;
+}
+
+.section-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+    border-bottom: 2px solid #0d6efd;
+    margin: 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px 12px 0 0;
+}
+
+.section-body {
+    padding: 1.25rem;
+}
+
+.sub-section-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sub-section-title i {
+    color: #0d6efd;
+}
+
+.product-list {
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.product-list .list-group-item {
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+}
+
+.product-list .list-group-item:first-child {
+    border-top: none;
+}
+
+.product-list .list-group-item:last-child {
+    border-bottom: none;
+}
+
+.product-form {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 0.75rem;
+}
+
+/* PG Company Group */
+.pg-company-group .form-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pg-company-group .form-check:hover {
+    background-color: #f8f9fa;
+}
+
+.pg-company-group .form-check .form-check-input {
+    display: none;
+}
+
+.pg-company-group .form-check:has(.form-check-input:checked) .form-check-label {
+    font-weight: 600;
+}
+
+.pg-company-group .form-check:has(.form-check-input:checked) {
+    border-color: #198754;
+    background-color: #d1e7dd;
+}
+
+/* Payment Method Group */
+.payment-method-group .form-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.payment-method-group .form-check:hover {
+    background-color: #f8f9fa;
+}
+
+.payment-method-group .form-check .form-check-input {
+    display: none;
+}
+
+.payment-method-group .form-check:has(.form-check-input:checked) .form-check-label {
+    font-weight: 600;
+}
+
+.payment-method-group .form-check:has(.form-check-input:checked) {
+    border-color: #0d6efd;
+    background-color: #e7f1ff;
+}
+
+/* Payment Option */
+.payment-option {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.payment-option.show {
+    display: block;
+}
+
+/* Total Summary */
+.total-summary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    color: white;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.total-summary .total-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.total-summary .total-amount {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+/* Action Buttons */
+.action-buttons .btn {
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+}
+
+/* Save Option */
+.save-option {
+    background: #e7f3ff;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+/* JSON Viewer */
+.json-viewer-wrapper {
+    position: relative;
+}
+
+.json-viewer {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Copy Button */
+.btn-copy {
+    position: absolute;
+    top: 8px;
+    right: 20px;
+    z-index: 10;
+    background: rgba(60, 60, 60, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #d4d4d4;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn-copy:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.btn-copy.copied {
+    background: #28a745;
+    border-color: #28a745;
+    color: #fff;
+}
+
+/* API History Table */
+.api-history-table {
+    font-size: 0.9rem;
+}
+
+.api-history-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.api-history-table td {
+    white-space: nowrap;
+}
+
+.api-history-table .json-cell {
+    max-width: 300px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.api-history-row:hover {
+    background-color: #e7f1ff !important;
+}
+
+/* Navigation Tabs */
+.nav-tabs .nav-link {
+    font-weight: 600;
+    color: #495057;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+}
+
+.nav-tabs .nav-link i {
+    margin-right: 0.5rem;
+}
+
+/* Toast Container */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1100;
+}
+
+/* Badge */
+.badge-method {
+    font-size: 0.75rem;
+    padding: 0.4em 0.8em;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .main-layout {
+        flex-direction: column;
+    }
+}
